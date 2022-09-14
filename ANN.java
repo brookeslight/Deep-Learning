@@ -145,7 +145,7 @@ public class ANN {
 			return Math.atan(x);
 		}
 		if(this.func == Function.ReLu) {
-			return Math.max(0, x);
+			return (x > 0) ? x : 0;
 		}
 		throw new IllegalArgumentException("f Error!");
 	}
@@ -163,13 +163,7 @@ public class ANN {
 			return (1.0 / ((x*x) + 1.0));
 		}
 		if(this.func == Function.ReLu) {
-			if(x < 0) {
-				return 0;
-			} else if(x > 0) {
-				return 1;
-			} else { // x = 0 is undefined for d/dx ReLU(x)
-				return 1;
-			}
+			return (x > 0) ? 1 : 0;
 		}
 		throw new IllegalArgumentException("fPrime Error!");
 	}
