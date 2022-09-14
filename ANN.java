@@ -49,15 +49,24 @@ public class ANN {
 	* @param input the input vector into the matrix
 	* @return the vector of the NN prediction
 	*/
-	public double[][] predict(double[][] input) {
+	private double[][] forwardPropagation(double[][] input) {
         if(input.length != this.inputSize || input[0].length != 1) {
             throw new IllegalArgumentException("Input Error!"); //colA must equal rowB
         }
-		sums.set(0, this.activate(this.add(this.multiply(this.weights.get(0), input), this.biases.get(0))));
+		sums.set(0, this.add(this.multiply(this.weights.get(0), input), this.biases.get(0)));
 		for(int i = 1; i < this.sums.size(); i++) {
-			sums.set(i, this.activate(this.add(this.multiply(this.weights.get(i), this.sums.get(i-1)), this.biases.get(i))));
+			sums.set(i, this.add(this.multiply(this.weights.get(i), this.activate(this.sums.get(i-1))), this.biases.get(i)));
 		}
-		return this.sums.get(this.sums.size()-1);
+		return this.activate(this.sums.get(this.sums.size()-1));
+	}
+	
+	/**
+	* Runs back propagation algorithm to adjust weights and biases
+	* 
+	* @param input the input vector into the matrix
+	*/
+	private double[][] backPropogation(double[][] input) {
+		return null;
 	}
 	
 	/**
@@ -67,12 +76,12 @@ public class ANN {
 	* @param expectedOutput the vector of the expected output of the NN
 	* @return the cost of the NN
 	*/
-	public double cost(double[][] input, double[][] expectedOutput) {
+	private double cost(double[][] input, double[][] expectedOutput) {
         if(input.length != this.inputSize || input[0].length != 1 || expectedOutput[0].length != 1) {
             throw new IllegalArgumentException("Input Error!"); //colA must equal rowB    //rows = arr.length; //columns = arr[0].length;
         }
         double cost = 0;
-        double[][] output = this.predict(input);
+        double[][] output = this.forwardPropagation(input);
         
         if(output.length != expectedOutput.length) {
             throw new IllegalArgumentException("Input Error!"); //colA must equal rowB    //rows = arr.length; //columns = arr[0].length;
@@ -87,7 +96,7 @@ public class ANN {
 	public static void main(String[] args) {
 		System.out.println("Running");
 		ANN ann = new ANN(Function.Sigmoid, new int[] {2,3,2});
-		System.out.println("Prediction: " + Arrays.deepToString(ann.predict(new double[][] {{1},{-1}})));
+		System.out.println("Prediction: " + Arrays.deepToString(ann.forwardPropagation(new double[][] {{1},{-1}})));
 		System.out.println("Cost: " + ann.cost(new double[][] {{2},{3}}, new double[][] {{1},{0}}));
 		
 //		System.out.println("Testing Matrix Multiply");
@@ -133,12 +142,12 @@ public class ANN {
 			return (1.0 / (1.0 + Math.exp(-x)));
 		}
 		if(this.func == Function.ArcTan) {
-			return 0;
+			return Math.atan(x);
 		}
 		if(this.func == Function.ReLu) {
-			return 0;
+			return Math.max(0, x);
 		}
-		return 0; //should never happen
+		throw new IllegalArgumentException("f Error!");
 	}
 	
 	/**
@@ -148,15 +157,21 @@ public class ANN {
 	*/
 	private double fPrime(double x) {
 		if(this.func == Function.Sigmoid) {
-			return (1.0 / (1.0 + Math.exp(-x)));
+			return (this.f(x) * (1.0 - this.f(x)));
 		}
 		if(this.func == Function.ArcTan) {
-			return 0;
+			return (1.0 / ((x*x) + 1.0));
 		}
 		if(this.func == Function.ReLu) {
-			return 0;
+			if(x < 0) {
+				return 0;
+			} else if(x > 0) {
+				return 1;
+			} else { // x = 0 is undefined for d/dx ReLU(x)
+				return 1;
+			}
 		}
-		return 0; //should never happen
+		throw new IllegalArgumentException("fPrime Error!");
 	}
 	
 	/**
